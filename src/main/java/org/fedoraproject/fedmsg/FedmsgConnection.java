@@ -3,7 +3,10 @@ package org.fedoraproject.fedmsg;
 import org.zeromq.ZMQ;
 
 /**
+ * Connect to a fedmsg bus.
+ *
  * @author Ricky Elrod
+ * @version 1.0.0
  */
 public final class FedmsgConnection {
     private String endpoint;

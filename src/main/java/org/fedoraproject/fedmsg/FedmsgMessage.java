@@ -28,10 +28,19 @@ import java.security.Signature;
 import java.security.SignatureException;
 
 /**
+ * An <b>unsigned</b> fedmsg message. You likely never want to send this over
+ * the bus (unless you are debugging/developing). Instead you want to send
+ * {@link SignedFedmsgMessage} which includes the signature and certificate.
+ *
+ * You can convert this to a {@link SignedFedmsgMessage} by calling
+ * {@link sign(File, File)}.
+ *
  * @author Ricky Elrod
+ * @version 1.0.0
+ * @see SignedFedmsgMessage
  */
 @JsonPropertyOrder(alphabetic=true)
-public class FedmsgMessage {
+public final class FedmsgMessage {
     private HashMap<String, String> message;
     private String topic;
     private long timestamp;
@@ -82,6 +91,9 @@ public class FedmsgMessage {
         return this.i;
     }
 
+    /**
+     * Converts this message into its JSON representation.
+     */
     public ByteArrayOutputStream toJson() throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ObjectMapper mapper = new ObjectMapper();
@@ -92,6 +104,9 @@ public class FedmsgMessage {
         return os;
     }
 
+    /**
+     * Signs a message.
+     */
     public SignedFedmsgMessage sign(File cert, File key)
         throws
             IOException,
