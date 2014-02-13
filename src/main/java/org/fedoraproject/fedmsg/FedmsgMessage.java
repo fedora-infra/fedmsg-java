@@ -92,7 +92,7 @@ public class FedmsgMessage {
         return os;
     }
 
-    public String sign(File cert, File key)
+    public SignedFedmsgMessage sign(File cert, File key)
         throws
             IOException,
             InvalidKeyException,
@@ -106,6 +106,8 @@ public class FedmsgMessage {
         PEMWriter certWriter = new PEMWriter(new OutputStreamWriter(certOS));
         certWriter.writeObject(certParser.readObject());
         certWriter.close();
+        String certString =
+            new String(Base64.encode(certOS.toString().getBytes()));
 
         PEMParser keyParser = new PEMParser(new FileReader(key));
         JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
@@ -115,6 +117,8 @@ public class FedmsgMessage {
         signature.initSign(pkey);
         signature.update(this.toJson().toString().getBytes());
         byte[] signed = signature.sign();
-        return (new String(Base64.encode(signed)));
+        String signatureString = new String(Base64.encode(signed));
+
+        return new SignedFedmsgMessage(this, signatureString, certString);
     }
 }
