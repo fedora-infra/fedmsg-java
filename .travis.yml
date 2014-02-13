@@ -1,0 +1,5 @@
+# It's really Java, but by saying 'scala' we get sbt for free.
+language: scala
+scala:
+- 2.10.2
+script: sbt compile
