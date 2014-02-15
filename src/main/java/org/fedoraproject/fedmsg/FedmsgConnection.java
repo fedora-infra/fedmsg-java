@@ -2,6 +2,8 @@ package org.fedoraproject.fedmsg;
 
 import org.zeromq.ZMQ;
 
+import java.io.IOException;
+
 /**
  * Connect to a fedmsg bus.
  *
@@ -38,5 +40,17 @@ public final class FedmsgConnection {
         this.sock.setLinger(this.linger);
         this.sock.connect(this.endpoint);
         return this;
+    }
+
+    public void send(SignedFedmsgMessage msg) throws IOException {
+        this.sock.send(msg.getMessage().getTopic(), ZMQ.SNDMORE | ZMQ.NOBLOCK);
+        this.sock.send(
+            msg.getMessage().toJson().toString(),
+            ZMQ.SNDMORE | ZMQ.NOBLOCK);
+    }
+
+    public void send(FedmsgMessage msg) throws IOException {
+        this.sock.send(msg.getTopic(), ZMQ.SNDMORE | ZMQ.NOBLOCK);
+        this.sock.send(msg.toJson().toString(), ZMQ.SNDMORE | ZMQ.NOBLOCK);
     }
 }
