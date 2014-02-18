@@ -44,11 +44,11 @@ public final class FedmsgConnection {
 
     public void send(SignedFedmsgMessage msg) throws IOException {
         this.sock.send(msg.getMessage().getTopic(), ZMQ.SNDMORE | ZMQ.NOBLOCK);
-        this.sock.send(msg.toJson().toString(), ZMQ.SNDMORE | ZMQ.NOBLOCK);
+        this.sock.send(msg.toJson().toString(), ZMQ.NOBLOCK);
     }
 
     public void send(FedmsgMessage msg) throws IOException {
         this.sock.send(msg.getTopic(), ZMQ.SNDMORE | ZMQ.NOBLOCK);
-        this.sock.send(msg.toJson().toString(), ZMQ.SNDMORE | ZMQ.NOBLOCK);
+        this.sock.send(msg.toJson().toString(), ZMQ.NOBLOCK);
     }
 }
