@@ -7,6 +7,7 @@ import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.util.encoders.Base64;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +41,7 @@ import java.security.SignatureException;
  * @see SignedFedmsgMessage
  */
 @JsonPropertyOrder(alphabetic=true)
-public final class FedmsgMessage {
+public class FedmsgMessage {
     private HashMap<String, String> message;
     private String topic;
     private long timestamp;
@@ -55,6 +56,7 @@ public final class FedmsgMessage {
         this.i = orig.getI();
     }
 
+    @JsonProperty("msg")
     public FedmsgMessage setMessage(HashMap<String, String> m) {
         this.message = m;
         return this;
@@ -66,7 +68,7 @@ public final class FedmsgMessage {
     }
 
     public FedmsgMessage setTimestamp(Date t) {
-        this.timestamp = t.getTime();
+        this.timestamp = t.getTime() / 1000;
         return this;
     }
 
@@ -75,6 +77,7 @@ public final class FedmsgMessage {
         return this;
     }
 
+    @JsonProperty("msg")
     public HashMap<String, String> getMessage() {
         return this.message;
     }
