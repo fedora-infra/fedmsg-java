@@ -6,6 +6,8 @@ organization := "org.fedoraproject"
 
 publishTo := Some(Resolver.file("file", new File( "releases" )) )
 
+crossPaths := false
+
 libraryDependencies ++= Seq(
   "org.zeromq" % "jeromq" % "0.3.3",
   "com.fasterxml.jackson.core" % "jackson-databind" % "2.3.0",
