@@ -42,7 +42,7 @@ import java.security.SignatureException;
  */
 @JsonPropertyOrder(alphabetic=true)
 public class FedmsgMessage {
-    private HashMap<String, String> message;
+    private HashMap<String, Object> message;
     private String topic;
     private long timestamp;
     private long i; // What is this?
@@ -57,7 +57,7 @@ public class FedmsgMessage {
     }
 
     @JsonProperty("msg")
-    public FedmsgMessage setMessage(HashMap<String, String> m) {
+    public FedmsgMessage setMessage(HashMap<String, Object> m) {
         this.message = m;
         return this;
     }
@@ -77,8 +77,9 @@ public class FedmsgMessage {
         return this;
     }
 
+    // ew, Object. :-(
     @JsonProperty("msg")
-    public HashMap<String, String> getMessage() {
+    public HashMap<String, Object> getMessage() {
         return this.message;
     }
 
