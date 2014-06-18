@@ -75,26 +75,26 @@ public class FedmsgMessage {
 
     // ew, Object. :-(
     @JsonProperty("msg")
-    public HashMap<String, Object> getMessage() {
+    public final HashMap<String, Object> getMessage() {
         return this.message;
     }
 
-    public String getTopic() {
+    public final String getTopic() {
         return this.topic;
     }
 
-    public Date getTimestamp() {
+    public final Date getTimestamp() {
         return new Date(this.timestamp);
     }
 
-    public long getI() {
+    public final long getI() {
         return this.i;
     }
 
     /**
      * Converts this message into its JSON representation.
      */
-    public ByteArrayOutputStream toJson() throws IOException {
+    public final ByteArrayOutputStream toJson() throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ObjectMapper mapper = new ObjectMapper();
         ObjectWriter w = mapper.writer();
@@ -107,7 +107,7 @@ public class FedmsgMessage {
     /**
      * Signs a message.
      */
-    public IO<Either<Exception, SignedFedmsgMessage>> sign(final File cert, final File key)
+    public final IO<Either<Exception, SignedFedmsgMessage>> sign(final File cert, final File key)
         throws
             IOException,
             InvalidKeyException,

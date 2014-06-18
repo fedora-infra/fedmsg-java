@@ -25,11 +25,11 @@ public final class SignedFedmsgMessage extends FedmsgMessage {
         this.certificate = certificate;
     }
 
-    public String getSignature() {
+    public final String getSignature() {
         return this.signature;
     }
 
-    public String getCertificate() {
+    public final String getCertificate() {
         return this.certificate;
     }
 }
