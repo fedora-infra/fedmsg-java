@@ -33,48 +33,41 @@ import java.security.SignatureException;
  * the bus (unless you are debugging/developing). Instead you want to send
  * {@link SignedFedmsgMessage} which includes the signature and certificate.
  *
+ * This class is immutable, although calls to {@link sign(File, File)} do
+ * side effect. This is wrapped in a FunctionalJava IO monad, but this does not
+ * imply purity. :'(
+ *
  * You can convert this to a {@link SignedFedmsgMessage} by calling
- * {@link sign(File, File)}.
+ * {@link sign(File, File)}. Keep in mind that this is wrapped in
+ * {@link fj.data.IO}.
  *
  * @author Ricky Elrod
- * @version 1.0.0
+ * @version 2.0.0
  * @see SignedFedmsgMessage
  */
 @JsonPropertyOrder(alphabetic=true)
 public class FedmsgMessage {
-    private HashMap<String, Object> message;
-    private String topic;
-    private long timestamp;
-    private long i; // What is this?
+    final private HashMap<String, Object> message;
+    final private String topic;
+    final private long timestamp;
+    final private long i; // What is this?
 
-    public FedmsgMessage() { }
+    public FedmsgMessage(
+        final HashMap<String, Object> message,
+        final String topic,
+        final long timestamp,
+        final long i) {
+        this.message = message;
+        this.topic = topic;
+        this.timestamp = timestamp;
+        this.i = i;
+    }
 
     protected FedmsgMessage(FedmsgMessage orig) {
         this.message = orig.getMessage();
         this.topic = orig.getTopic();
         this.timestamp = orig.getTimestamp().getTime();
         this.i = orig.getI();
-    }
-
-    @JsonProperty("msg")
-    public FedmsgMessage setMessage(HashMap<String, Object> m) {
-        this.message = m;
-        return this;
-    }
-
-    public FedmsgMessage setTopic(String t) {
-        this.topic = t;
-        return this;
-    }
-
-    public FedmsgMessage setTimestamp(Date t) {
-        this.timestamp = t.getTime() / 1000;
-        return this;
-    }
-
-    public FedmsgMessage setI(long i) {
-        this.i = i;
-        return this;
     }
 
     // ew, Object. :-(

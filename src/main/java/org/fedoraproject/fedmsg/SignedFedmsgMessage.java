@@ -13,8 +13,8 @@ import java.io.IOException;
  */
 @JsonPropertyOrder(alphabetic=true)
 public final class SignedFedmsgMessage extends FedmsgMessage {
-    private String signature;
-    private String certificate;
+    final private String signature;
+    final private String certificate;
 
     public SignedFedmsgMessage(
         FedmsgMessage message,
