@@ -28,6 +28,9 @@ import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
 
+import fj.data.Either;
+import fj.data.IO;
+
 /**
  * An <b>unsigned</b> fedmsg message. You likely never want to send this over
  * the bus (unless you are debugging/developing). Instead you want to send
@@ -104,33 +107,44 @@ public class FedmsgMessage {
     /**
      * Signs a message.
      */
-    public SignedFedmsgMessage sign(File cert, File key)
+    public IO<Either<Exception, SignedFedmsgMessage>> sign(final File cert, final File key)
         throws
             IOException,
             InvalidKeyException,
             NoSuchAlgorithmException,
             NoSuchProviderException,
             SignatureException {
-        Security.addProvider(new BouncyCastleProvider());
+        final FedmsgMessage msg = this;
 
-        PEMParser certParser = new PEMParser(new FileReader(cert));
-        ByteArrayOutputStream certOS = new ByteArrayOutputStream();
-        PEMWriter certWriter = new PEMWriter(new OutputStreamWriter(certOS));
-        certWriter.writeObject(certParser.readObject());
-        certWriter.close();
-        String certString =
-            new String(Base64.encode(certOS.toString().getBytes()));
+        return new IO<Either<Exception, SignedFedmsgMessage>>() {
+            public Either<Exception, SignedFedmsgMessage> run() {
+                Security.addProvider(new BouncyCastleProvider());
 
-        PEMParser keyParser = new PEMParser(new FileReader(key));
-        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
-        PrivateKey pkey =
-            converter.getPrivateKey((PrivateKeyInfo)keyParser.readObject());
-        Signature signature = Signature.getInstance("SHA1WithRSA", "BC");
-        signature.initSign(pkey);
-        signature.update(this.toJson().toString().getBytes());
-        byte[] signed = signature.sign();
-        String signatureString = new String(Base64.encode(signed));
+                try {
+                    PEMParser certParser = new PEMParser(new FileReader(cert));
+                    ByteArrayOutputStream certOS = new ByteArrayOutputStream();
+                    PEMWriter certWriter = new PEMWriter(new OutputStreamWriter(certOS));
+                    certWriter.writeObject(certParser.readObject());
+                    certWriter.close();
+                    String certString =
+                        new String(Base64.encode(certOS.toString().getBytes()));
 
-        return new SignedFedmsgMessage(this, signatureString, certString);
+                    PEMParser keyParser = new PEMParser(new FileReader(key));
+                    JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+                    PrivateKey pkey =
+                        converter.getPrivateKey((PrivateKeyInfo)keyParser.readObject());
+                    Signature signature = Signature.getInstance("SHA1WithRSA", "BC");
+                    signature.initSign(pkey);
+                    signature.update(msg.toJson().toString().getBytes());
+                    byte[] signed = signature.sign();
+                    String signatureString = new String(Base64.encode(signed));
+
+                    return Either.right(
+                        new SignedFedmsgMessage(msg, signatureString, certString));
+                } catch (Exception e) {
+                    return Either.left(e);
+                }
+            }
+        };
     }
 }
