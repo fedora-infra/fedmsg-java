@@ -11,19 +11,17 @@ import java.io.IOException;
  * @version 1.0.0
  */
 public final class FedmsgConnection {
-    private String endpoint;
-    private int linger;
-    private ZMQ.Socket sock;
-    private ZMQ.Context context;
+    private final String endpoint;
+    private final int linger;
+    private final ZMQ.Socket sock;
+    private final ZMQ.Context context;
 
-    public FedmsgConnection setEndpoint(String endpoint) {
+    public FedmsgConnection(
+        String endpoint,
+        int linger
+    ) {
         this.endpoint = endpoint;
-        return this;
-    }
-
-    public FedmsgConnection setLinger(int linger) {
         this.linger = linger;
-        return this;
     }
 
     public String getEndpoint() {
