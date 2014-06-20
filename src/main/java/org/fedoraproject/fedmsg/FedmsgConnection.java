@@ -4,6 +4,11 @@ import org.zeromq.ZMQ;
 
 import java.io.IOException;
 
+import fj.F;
+import fj.Unit;
+import fj.data.Either;
+import fj.data.IO;
+
 /**
  * Connect to a fedmsg bus.
  *
@@ -13,8 +18,8 @@ import java.io.IOException;
 public final class FedmsgConnection {
     private final String endpoint;
     private final int linger;
-    private final ZMQ.Socket sock;
-    private final ZMQ.Context context;
+    private ZMQ.Socket sock;
+    private ZMQ.Context context;
 
     public FedmsgConnection(
         String endpoint,
@@ -32,16 +37,32 @@ public final class FedmsgConnection {
         return this.linger;
     }
 
-    public FedmsgConnection connect() {
-        this.context = ZMQ.context(1);
-        this.sock = context.socket(ZMQ.PUB);
-        this.sock.setLinger(this.linger);
-        this.sock.connect(this.endpoint);
-        return this;
+    /**
+     * @return a FedmsgConnection wrapped in an (impure) IO monad.
+     */
+    public IO<FedmsgConnection> connect() {
+        return new IO<FedmsgConnection>() {
+            public FedmsgConnection run() {
+                FedmsgConnection.this.context = ZMQ.context(1);
+                FedmsgConnection.this.sock = context.socket(ZMQ.PUB);
+                FedmsgConnection.this.sock.setLinger(FedmsgConnection.this.linger);
+                FedmsgConnection.this.sock.connect(FedmsgConnection.this.endpoint);
+                return FedmsgConnection.this;
+            }
+        };
     }
 
-    public void send(FedmsgMessage msg) throws IOException {
-        this.sock.send(msg.getTopic(), ZMQ.SNDMORE | ZMQ.NOBLOCK);
-        this.sock.send(msg.toJson().toString(), ZMQ.NOBLOCK);
+    public IO<Either<Exception, Unit>> send(final FedmsgMessage msg) {
+        return new IO<Either<Exception, Unit>>() {
+            public Either<Exception, Unit> run() {
+                try {
+                    FedmsgConnection.this.sock.send(msg.getTopic(), ZMQ.SNDMORE | ZMQ.NOBLOCK);
+                    FedmsgConnection.this.sock.send(msg.toJson().toString(), ZMQ.NOBLOCK);
+                    return Either.right(Unit.unit());
+                } catch (Exception e) {
+                    return Either.left(e);
+                }
+            }
+        };
     }
 }
