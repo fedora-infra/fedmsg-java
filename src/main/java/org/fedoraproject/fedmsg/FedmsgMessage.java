@@ -114,7 +114,6 @@ public class FedmsgMessage {
             NoSuchAlgorithmException,
             NoSuchProviderException,
             SignatureException {
-        final FedmsgMessage msg = this;
 
         return new IO<Either<Exception, SignedFedmsgMessage>>() {
             public Either<Exception, SignedFedmsgMessage> run() {
@@ -135,12 +134,12 @@ public class FedmsgMessage {
                         converter.getPrivateKey((PrivateKeyInfo)keyParser.readObject());
                     Signature signature = Signature.getInstance("SHA1WithRSA", "BC");
                     signature.initSign(pkey);
-                    signature.update(msg.toJson().toString().getBytes());
+                    signature.update(FedmsgMessage.this.toJson().toString().getBytes());
                     byte[] signed = signature.sign();
                     String signatureString = new String(Base64.encode(signed));
 
                     return Either.right(
-                        new SignedFedmsgMessage(msg, signatureString, certString));
+                        new SignedFedmsgMessage(FedmsgMessage.this, signatureString, certString));
                 } catch (Exception e) {
                     return Either.left(e);
                 }
