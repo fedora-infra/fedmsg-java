@@ -13,8 +13,8 @@ import java.io.IOException;
 public final class FedmsgConnection {
     private final String endpoint;
     private final int linger;
-    private final ZMQ.Socket sock;
-    private final ZMQ.Context context;
+    private ZMQ.Socket sock;
+    private ZMQ.Context context;
 
     public FedmsgConnection(
         String endpoint,
