@@ -13,11 +13,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.File;
-import java.io.FileReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Date;
 import java.security.InvalidKeyException;
@@ -28,6 +24,7 @@ import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
 
+import fj.F;
 import fj.data.Either;
 import fj.data.IO;
 
@@ -104,46 +101,88 @@ public class FedmsgMessage {
         return os;
     }
 
+
     /**
-     * Signs a message.
+     * Reads a certificate from our .crt file format...
      */
-    public final IO<Either<Exception, SignedFedmsgMessage>> sign(final File cert, final File key)
-        throws
-            IOException,
-            InvalidKeyException,
-            NoSuchAlgorithmException,
-            NoSuchProviderException,
-            SignatureException {
-
-        return new IO<Either<Exception, SignedFedmsgMessage>>() {
-            public Either<Exception, SignedFedmsgMessage> run() {
-                Security.addProvider(new BouncyCastleProvider());
-
+    private final IO<Either<Exception, String>> readCert(final File f) {
+        return new IO<Either<Exception, String>>() {
+            public Either<Exception,String> run() {
                 try {
-                    PEMParser certParser = new PEMParser(new FileReader(cert));
-                    ByteArrayOutputStream certOS = new ByteArrayOutputStream();
-                    PEMWriter certWriter = new PEMWriter(new OutputStreamWriter(certOS));
-                    certWriter.writeObject(certParser.readObject());
-                    certWriter.close();
-                    String certString =
-                        new String(Base64.encode(certOS.toString().getBytes()));
-
-                    PEMParser keyParser = new PEMParser(new FileReader(key));
-                    JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
-                    PrivateKey pkey =
-                        converter.getPrivateKey((PrivateKeyInfo)keyParser.readObject());
-                    Signature signature = Signature.getInstance("SHA1WithRSA", "BC");
-                    signature.initSign(pkey);
-                    signature.update(FedmsgMessage.this.toJson().toString().getBytes());
-                    byte[] signed = signature.sign();
-                    String signatureString = new String(Base64.encode(signed));
-
-                    return Either.right(
-                        new SignedFedmsgMessage(FedmsgMessage.this, signatureString, certString));
+                    BufferedReader br = new BufferedReader(new FileReader(f));
+                    String line;
+                    String cert = "";
+                    boolean readingCert = false;
+                    while ((line = br.readLine()) != null) {
+                        if (!readingCert && line.contains("----")) {
+                            readingCert = true;
+                            cert = cert.concat(line.concat("\n"));
+                        } else if (readingCert) {
+                            cert = cert.concat(line.concat("\n"));
+                        }
+                    }
+                    br.close();
+                    return Either.right(cert);
                 } catch (Exception e) {
                     return Either.left(e);
                 }
             }
         };
+    }
+
+    /**
+     * Signs a message.
+     *
+     * /!\ ugly code (nesting hell) follows.
+     */
+    public final IO<Either<Exception, SignedFedmsgMessage>> sign(final File cert, final File key) {
+        // /!\ Nesting *hell* below
+        return readCert(cert).bind(
+            new F<Either<Exception, String>, IO<Either<Exception, SignedFedmsgMessage>>>() {
+                public IO<Either<Exception, SignedFedmsgMessage>> f(final Either<Exception, String> e) {
+                    // Catamorphism. If it's a left, return that exception,
+                    // otherwise proceed as normal.
+                    return e.either(
+                        // Left
+                        new F<Exception, IO<Either<Exception, SignedFedmsgMessage>>>() {
+                            public IO<Either<Exception, SignedFedmsgMessage>> f(final Exception e) {
+                                return new IO<Either<Exception, SignedFedmsgMessage>>() {
+                                    public Either<Exception, SignedFedmsgMessage> run() {
+                                        return Either.left(e);
+                                    }
+                                };
+                            }
+                        },
+
+                        // Right
+                        new F<String, IO<Either<Exception, SignedFedmsgMessage>>>() {
+                            public IO<Either<Exception, SignedFedmsgMessage>> f(final String c) {
+                                return new IO<Either<Exception, SignedFedmsgMessage>>() {
+                                    public Either<Exception, SignedFedmsgMessage> run() {
+                                        Security.addProvider(new BouncyCastleProvider());
+                                        try {
+                                            String certString =
+                                                new String(Base64.encode(c.getBytes()));
+
+                                            PEMParser keyParser = new PEMParser(new FileReader(key));
+                                            JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+                                            PrivateKey pkey =
+                                                converter.getPrivateKey((PrivateKeyInfo)keyParser.readObject());
+                                            Signature signature = Signature.getInstance("SHA1WithRSA", "BC");
+                                            signature.initSign(pkey);
+                                            signature.update(FedmsgMessage.this.toJson().toString().getBytes());
+                                            byte[] signed = signature.sign();
+                                            String signatureString = new String(Base64.encode(signed));
+                                            return Either.right(
+                                                new SignedFedmsgMessage(FedmsgMessage.this, signatureString, certString));
+                                        } catch (Exception e) {
+                                            return Either.left(e);
+                                        }
+                                    }
+                                };
+                            }
+                        });
+                }
+            });
     }
 }
