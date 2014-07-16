@@ -13,8 +13,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import java.io.*;
-import java.util.HashMap;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.UUID;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -50,6 +52,7 @@ public class FedmsgMessage {
     final private String topic;
     final private long timestamp;
     final private long i; // What is this?
+    final private String msgId;
 
     public FedmsgMessage(
         final HashMap<String, Object> message,
@@ -60,6 +63,9 @@ public class FedmsgMessage {
         this.topic = topic;
         this.timestamp = timestamp;
         this.i = i;
+        this.msgId =
+            Integer.toString(Calendar.getInstance().get(Calendar.YEAR)) + "-" +
+            UUID.randomUUID().toString();
     }
 
     protected FedmsgMessage(FedmsgMessage orig) {
@@ -67,6 +73,7 @@ public class FedmsgMessage {
         this.topic = orig.getTopic();
         this.timestamp = orig.getTimestamp().getTime();
         this.i = orig.getI();
+        this.msgId = orig.getMsgId();
     }
 
     // ew, Object. :-(
@@ -85,6 +92,11 @@ public class FedmsgMessage {
 
     public final long getI() {
         return this.i;
+    }
+
+    @JsonProperty("msg_id")
+    public final String getMsgId() {
+        return this.msgId;
     }
 
     /**
