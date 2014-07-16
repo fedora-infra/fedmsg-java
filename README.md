@@ -6,6 +6,10 @@ A small library for emitting messages to the fedmsg bus from Java.
 
 [javadoc](http://fedora-infra.github.io/fedmsg-java/).
 
+**NOTE:**
+If using this with a Jenkins master hosted on JDK 1.6, you must also compile
+this dependency on a 1.6 JVM.
+
 # Developing
 
 ```bash
