@@ -41,7 +41,7 @@ public final class FedmsgConnection {
     }
 
     public boolean disconnect() {
-        boolean result = disconnect(this.sock);
+        boolean result = disconnect(this.endpoint);
         return result;
     }
 
