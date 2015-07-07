@@ -41,8 +41,7 @@ public final class FedmsgConnection {
     }
 
     public boolean disconnect() {
-        boolean result = this.sock.disconnect(this.endpoint);
-        return result;
+        return this.sock.disconnect(this.endpoint);
     }
 
     public void send(FedmsgMessage msg) throws IOException {
