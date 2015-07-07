@@ -40,9 +40,9 @@ public final class FedmsgConnection {
         return this;
     }
 
-    public boolean disconnect(ZMQ.Socket sock) {
-	boolean result = sock.disconnect();
-	return result;
+    public boolean disconnect() {
+        boolean result = disconnect(this.sock);
+        return result;
     }
 
     public void send(FedmsgMessage msg) throws IOException {
