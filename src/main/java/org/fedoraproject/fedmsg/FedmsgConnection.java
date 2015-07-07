@@ -40,6 +40,11 @@ public final class FedmsgConnection {
         return this;
     }
 
+    public boolean disconnect() {
+        boolean result = this.sock.disconnect(this.endpoint);
+        return result;
+    }
+
     public void send(FedmsgMessage msg) throws IOException {
         this.sock.send(msg.getTopic(), ZMQ.SNDMORE | ZMQ.NOBLOCK);
         this.sock.send(msg.toJson().toString(), ZMQ.NOBLOCK);
